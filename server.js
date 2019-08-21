@@ -5,6 +5,7 @@ var http = require('http');
 var fs = require('fs');
 var utik = require('util');
 
+var WEB_PATH = path.resolve(__dirname,'public')
 var staticAlias = require('node-static-alias')
 
 
@@ -28,17 +29,30 @@ main()
 
 //  this is the function that we pass to the instance to originally create it, it deals with the request and  response
 function handlerequest(req,res){
-    if(req.url!=="/about"){
-    res.writeHead(200,{"Content-Type":"text/plain"});
-    res.write("this is from the write function ")
-    res.end("Hello, AACN")}
-    else {
-        res.writeHead(200,{"Content-Type":"text/html"});
-        res.write("<h1>THIS IS ABOUT PAGRE</h1>")
-    }
+
+    fileServer.serve(req,res)
 
 
 }
 
 // now to make routing easier we can employ the node-static-alias module
-staticAlias
+var fileServer = new staticAlias.Server(WEB_PATH,{
+    
+    cache:100,
+    serverInfo: "WORKSHOP",
+    alias: [
+        {
+            match: /^\/(?:index\/?)?(?:[?#].*$)?$/,
+            serve: "index.html",
+            force:true,        
+        },
+        {
+            match: /^\/(?:[\w\d]+)(?:[\/?#].*$)?$/,
+            serve: params=>`${params.basename}.html`       
+        },
+        {
+            match: /[^]/,
+            serve: "You scored a 404 ERROR"
+        }
+    ],
+})
